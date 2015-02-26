@@ -1,5 +1,5 @@
 # MatplotlibVideoBrowser
-Using [Matplotlib's GUI Neutral widgets](http://matplotlib.org/api/widgets_api.html) to through the frames of videos.
+Using [Matplotlib's GUI Neutral widgets](http://matplotlib.org/api/widgets_api.html) to browse through the frames of videos.
 
 This is merely an example of how to easily use Matplotlib to create quickly a simple tool.
 Here I needed to be able to quickly browse through some videos I annotated, ie visualise both the image and their facial landmarks.
