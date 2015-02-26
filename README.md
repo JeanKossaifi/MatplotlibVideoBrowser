@@ -22,10 +22,18 @@ We then bind each widget to an event handler (all of which are grouped in the Ev
 Here is how it looks on ubuntu:
 ![alt text](https://github.com/JeanKossaifi/MatplotlibVideoBrowser/raw/master/images/ubuntu_screenshot.png "Screenshot ubuntu")
 
+And it looks just the same on mac:
+![alt text](https://github.com/JeanKossaifi/MatplotlibVideoBrowser/raw/master/images/mac_screenshot.png "Screenshot mac")
+
 ## Can I try?
 Sure, all you need is python3, matplotlib, numpy and scipy (everyone has that, right?).
 
-Just clone the repository and run 
+Just clone the repository
+```
+git clone https://github.com/JeanKossaifi/MatplotlibVideoBrowser.git 
+```
+
+and run 
 ```
 python3 browser.py
 ```
