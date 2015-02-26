@@ -265,4 +265,4 @@ def browse_videos(video_loader, autoplay=True):
 
 if __name__ == '__main__':
     video_loader = VideoLoader(root_folder='./videos/')
-    browser = browse_videos(video_loader)
+    browse_videos(video_loader)
