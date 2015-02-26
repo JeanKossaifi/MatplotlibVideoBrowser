@@ -7,13 +7,13 @@ Here I needed to be able to quickly browse through some videos I annotated, ie v
 ## How does it work
 
 ### ShapeImageCollection
-This is a simple class that allows you to access each tuple composed of a frame and its corresponding landmark as list.
+This is a simple class that allows you to access each tuple composed of a frame and its corresponding landmark as a list.
 
 ### VideoLoader
 Similarly, just a convenience class to load a ShapeImageCollection for each video.
 
 ## browse video
-This is were the widgets are actually implemented.
+This is where the widgets are actually implemented.
 We just create a figure, add some axes for the data to be plotted and the widgets.
 We then bind each widget to an event handler (all of which are grouped in the EventHandler class) which updates the corresponding axes...
 
