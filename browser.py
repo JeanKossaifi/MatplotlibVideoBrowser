@@ -110,10 +110,7 @@ class VideoLoader():
         source = os.path.join(self.root_folder, self.sub_folders[index])
         return ShapeImageCollection(source, image_to_gray=True)
 
-
-
-
-def browse_videos(video_loader, autoplay=True):
+class VideoBrowser():
     """ Function to browse the videos returned by video loader
 
     Parameters
@@ -124,145 +121,130 @@ def browse_videos(video_loader, autoplay=True):
     autoplay: bool
                 if True, autoplays frames on first display
     """
+    def __init__(self, video_loader, autoplay=True):
+        # Load initial shape and image
+        self.video_loader = video_loader
+        self.collection = video_loader.load_video(0)
+        self.shape, self.image = self.collection[0]
+        # Current video
+        self.video_index = 0
+        # Current frame of the current video
+        self.frame = 0
+        # Really I shouldn't be doing that
+        self.fig = plt.figure('Video: {}'.format(self.video_loader.sub_folders[self.video_index]))
+        self.create_figure(self.shape, self.image)
     
-    # Hide the toolbar
-    plt.rcParams['toolbar'] = 'None'
-
-    # Load initial shape and image
-    collection = video_loader.load_video(0)
-    shape, image = collection[0]
-
-    # Really I shouldn't be doing that
-    fig = plt.figure('Video: {}'.format(video_loader.sub_folders[0]))
-
-    # Axes for the image and shape
-    ax = fig.add_axes([0, 0.2, 1, 0.8])
-    plt.axis('off')
-    ax_img = ax.imshow(image, cmap=plt.cm.Greys_r)
-    ax_scatter = ax.scatter(shape[:, 0], shape[:, 1], s=10)
-
-    # Create axes for the slider and add the slider
-    max_frame_value = 1
-    ax_frame = fig.add_axes([0.15, 0.1, 0.65, 0.05], axisbg='yellow')
-    # We use a trick: the slider has value between 0 and 1 which we then
-    # convert into a frame number
-    slider_frame = Slider(ax_frame, 'Frame:', 0, max_frame_value, valinit=0)
-    ax_video = fig.add_axes([0.15, 0.16, 0.65, 0.05], axisbg='yellow')
-    # Here the number of videos is fixed so we used integer values for the
-    # Slider
-    slider_video = Slider(ax_video, 'Video:', 0, len(video_loader) - 1,
-                          valinit=0, valfmt='%0.0f')
-
-    # Create the axes for the buttons
-    ax_prev_video = fig.add_axes([0.01, 0.02, 0.18, 0.065])
-    ax_next_video = fig.add_axes([0.81, 0.02, 0.18, 0.065])
-    ax_delete_frame = fig.add_axes([0.41, 0.02, 0.18, 0.065])
-    ax_prev_frame = fig.add_axes([0.21, 0.02, 0.18, 0.065])
-    ax_next_frame = fig.add_axes([0.6, 0.02, 0.18, 0.065])
-    ax_play_video = fig.add_axes([0.81, 0.1, 0.18, 0.1])
-    # Put actual buttons in the button axes
-    button_next_video = Button(ax_next_video, 'Next video')
-    button_prev_video = Button(ax_prev_video, 'Previous video')
-    button_next_frame = Button(ax_next_frame, 'Next frame')
-    button_prev_frame = Button(ax_prev_frame, 'Previous frame')
-    button_delete_frame = Button(ax_delete_frame, 'DELETE FRAME')
-    button_play_video = Button(ax_play_video, 'PLAY')
-
-    
-    class EventHandler():
-        """ Class to handle the event triggered by the widgets
+    def create_figure(self, shape, image):
+        """ Fills the figure with image, shape and buttons
         """
-        def __init__(self, video_loader):
-            self.video_index = 0
-            self.frame = 0
-            self.video_loader = video_loader
-            self.collection = self.video_loader.load_video(self.video_index)
-            self.refresh_frame()
-
-        def refresh_video(self, update_slider_position=False):
-            """ Update the current collection of shape and image
-            """
-            if update_slider_position:
-                slider_video.set_val(self.video_index)
-            self.collection = self.video_loader.load_video(self.video_index)
-            self.frame = 0
-            # TODO: remove that next ugly line
-            fig.canvas.set_window_title('Video: {}'.format(self.video_loader.sub_folders[self.video_index]))
-            self.refresh_frame(True)
-               
-        def refresh_frame(self, update_slider_position=False):
-            """ Update the frame currently displayed
-
-            Parameters
-            ----------
-            update_slider_position: bool, default is False
-                    if True, the position of the slider is updated to match
-                    self.frame
-            """
-            shape, image = self.collection[self.frame]
-            if update_slider_position:
-                slider_frame.set_val(self.frame / (len(self.collection) - 1) * max_frame_value)
-            ax_img.set_array(image)
-            ax_scatter.set_offsets(shape)
-            plt.draw()
-
-        def play_video(self, event):
-            for i in range(len(self.collection)):
-                self.frame = i
-                self.refresh_frame(True)
-                #time.sleep(0.005)
+        self.fig.clf()
+        # Hide the toolbar
+        plt.rcParams['toolbar'] = 'None'
         
-        def next_video(self, event):
-            if self.video_index < (len(self.video_loader) - 1):
-                self.video_index += 1
-                self.refresh_video(True)
-
-        def prev_video(self, event):
-            if self.video_index > 0:
-                self.video_index -= 1
-                self.refresh_video(True)
-
-        def next_frame(self, event):
-            if self.frame < (len(self.collection) - 1):
-                self.frame += 1
-                self.refresh_frame(True)
-
-        def prev_frame(self, event):
-            if self.frame > 0:
-                self.frame -= 1
-                self.refresh_frame(True)
-
-        def update_frame(self, event):
-            self.frame = int(slider_frame.val * (len(self.collection) - 1))
-            self.refresh_frame(False)
-
-        def update_video(self, event):
-            self.video_index = int(slider_video.val)
-            self.refresh_video(False)
+        # Axes for the image and shape
+        self.ax = self.fig.add_axes([0, 0.2, 1, 0.8])
+        plt.axis('off')
+        self.ax_img = self.ax.imshow(image, cmap=plt.cm.Greys_r)
+        self.ax_scatter = self.ax.scatter(shape[:, 0], shape[:, 1], s=10)
+        # Create axes for the slider and add the slider
+        self.max_frame_value = 1
+        self.ax_frame = self.fig.add_axes([0.15, 0.1, 0.65, 0.05], axisbg='yellow')
         
-        def delete_frame(self, event):
-            self.collection.delete(self.frame)
-            if self.frame == len(self.collection):
-                self.frame -= 1
-            self.refresh_frame(True)
-            
-    handler = EventHandler(video_loader)
-    
-    # Bind the buttons and sliders to their event handler
-    button_next_video.on_clicked(handler.next_video)
-    button_prev_video.on_clicked(handler.prev_video)    
-    button_prev_frame.on_clicked(handler.prev_frame) 
-    button_next_frame.on_clicked(handler.next_frame)
-    button_play_video.on_clicked(handler.play_video)
-    button_delete_frame.on_clicked(handler.delete_frame)
-    slider_frame.on_changed(handler.update_frame)
-    slider_video.on_changed(handler.update_video)
-    
-    plt.show()
-    
-    return handler
+        # We use a trick: the slider has value between 0 and 1 which we then
+        # convert into a frame number
+        self.slider_frame = Slider(self.ax_frame, 'Frame:', 0, self.max_frame_value,
+                                   valinit=self.frame / (len(self.collection) - 1) * self.max_frame_value)
+        self.ax_video = self.fig.add_axes([0.15, 0.16, 0.65, 0.05], axisbg='yellow')
+        # Here the number of videos is fixed so we used integer values for the
+        # Slider
+        self.slider_video = Slider(self.ax_video, 'Video:', 0, len(video_loader) - 1,
+                              valinit=self.video_index, valfmt='%0.0f')
+        # Create the axes for the buttons
+        self.ax_prev_video = self.fig.add_axes([0.01, 0.02, 0.18, 0.065])
+        self.ax_next_video = self.fig.add_axes([0.81, 0.02, 0.18, 0.065])
+        self.ax_prev_frame = self.fig.add_axes([0.21, 0.02, 0.18, 0.065])
+        self.ax_next_frame = self.fig.add_axes([0.6, 0.02, 0.18, 0.065])
+        self.ax_play_video = self.fig.add_axes([0.81, 0.1, 0.18, 0.1])
+        # Put actual buttons in the button axes
+        self.button_next_video = Button(self.ax_next_video, 'Next video')
+        self.button_prev_video = Button(self.ax_prev_video, 'Previous video')
+        self.button_next_frame = Button(self.ax_next_frame, 'Next frame')
+        self.button_prev_frame = Button(self.ax_prev_frame, 'Previous frame')
+        self.button_play_video = Button(self.ax_play_video, 'PLAY')
+        # Bind the buttons and sliders to their event handler
+        self.button_next_video.on_clicked(self.next_video)
+        self.button_prev_video.on_clicked(self.prev_video)    
+        self.button_prev_frame.on_clicked(self.prev_frame) 
+        self.button_next_frame.on_clicked(self.next_frame)
+        self.button_play_video.on_clicked(self.play_video)
+        self.slider_frame.on_changed(self.update_frame)
+        self.slider_video.on_changed(self.update_video)
+        plt.show()
+        
+    def refresh_video(self, update_slider_position=False):
+        """ Update the current collection of shape and image
+        """
+        self.collection = self.video_loader.load_video(self.video_index)
+        self.frame = 0
+        self.shape, self.image = self.collection[self.frame]
+        self.create_figure(self.shape, self.image)
+        # TODO: remove that next ugly line
+        self.fig.canvas.set_window_title('Video: {}'.format(self.video_loader.sub_folders[self.video_index]))
+        if update_slider_position:
+            self.slider_video.set_val(self.video_index)
 
+    def refresh_frame(self, update_slider_position=False):
+        """ Update the frame currently displayed
+
+        Parameters
+        ----------
+        update_slider_position: bool, default is False
+                if True, the position of the slider is updated to match
+                self.frame
+        """
+        self.shape, self.image = self.collection[self.frame]
+        if update_slider_position:
+            self.slider_frame.set_val(self.frame / (len(self.collection) - 1) * self.max_frame_value)
+        self.ax_img.set_array(self.image)
+        self.ax_scatter.set_offsets(self.shape)
+        plt.draw()
+
+    def play_video(self, event):
+        while self.frame < len(self.collection) - 1:
+            self.frame += 1
+            self.refresh_frame(True)
+            #time.sleep(0.005)
+
+    def next_video(self, event):
+        if self.video_index < (len(self.video_loader) - 1):
+            self.video_index += 1
+            self.refresh_video(True)
+
+    def prev_video(self, event):
+        if self.video_index > 0:
+            self.video_index -= 1
+            self.refresh_video(True)
+
+    def next_frame(self, event):
+        if self.frame < (len(self.collection) - 1):
+            self.frame += 1
+            self.refresh_frame(True)
+
+    def prev_frame(self, event):
+        if self.frame > 0:
+            self.frame -= 10
+            self.refresh_frame(True)
+
+    def update_frame(self, event):
+        self.frame = int(self.slider_frame.val * (len(self.collection) - 1))
+        self.refresh_frame(False)
+
+    def update_video(self, event):
+        self.video_index = int(self.slider_video.val)
+        self.refresh_video(False)
+        
 
 if __name__ == '__main__':
-    video_loader = VideoLoader(root_folder='./videos/')
-    browse_videos(video_loader)
+    video_folder = './videos/'
+    video_loader = VideoLoader(root_folder=video_folder)
+    browser = VideoBrowser(video_loader)
