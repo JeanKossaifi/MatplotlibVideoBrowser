@@ -157,7 +157,7 @@ class VideoBrowser():
         self.ax_video = self.fig.add_axes([0.15, 0.16, 0.65, 0.05], axisbg='yellow')
         # Here the number of videos is fixed so we used integer values for the
         # Slider
-        self.slider_video = Slider(self.ax_video, 'Video:', 0, len(video_loader) - 1,
+        self.slider_video = Slider(self.ax_video, 'Video:', 0, len(self.video_loader) - 1,
                               valinit=self.video_index, valfmt='%0.0f')
         # Create the axes for the buttons
         self.ax_prev_video = self.fig.add_axes([0.01, 0.02, 0.18, 0.065])
